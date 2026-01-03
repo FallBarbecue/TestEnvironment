@@ -1,33 +1,29 @@
 cmake_minimum_required(VERSION 3.20)
 project(TestEnvironment)
 
-# C++ 17 Standartlarını zorunlu kıl (Filesystem ve SFML için gerekli)
+# C++ 17 Standartlarını zorunlu kıl
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# --- KLASÖR YOLLARI ---
-# Dependencies klasörünü bir değişkene atayalım ki sürekli uzun uzun yazmayalım
-# Tırnak içinde ve düz taksim ile:
-set(DEPS_DIR "C:/Users/Umut/CLionProjects/TestEnvironment/Dependencies")
+# --- KLASÖR YOLLARI (DİNAMİK) ---
+# Proje ana dizinindeki Dependencies klasörünü baz alıyoruz
+set(DEPS_DIR ${CMAKE_SOURCE_DIR}/Dependencies)
 
 # --- INCLUDE (BAŞLIK) YOLLARI ---
-# Derleyiciye .h dosyalarını nerede bulacağını söylüyoruz
 include_directories(
         ${DEPS_DIR}/SFML/include
         ${DEPS_DIR}/imgui
         ${DEPS_DIR}/imgui-sfml
-        ${DEPS_DIR}/tiny-dnn
+        ${DEPS_DIR}/tiny_dnn  # Ekran görüntüsünde klasör adı 'tiny_dnn' (alt çizgi ile)
 )
 
 # --- LIBRARY (KÜTÜPHANE) YOLLARI ---
-# Derleyiciye .lib (veya .a) dosyalarını nerede bulacağını söylüyoruz
 link_directories(
         ${DEPS_DIR}/SFML/lib
 )
 
 # --- KAYNAK DOSYALAR ---
-# Projemiz sadece main.cpp'den ibaret değil.
-# ImGui ve ImGui-SFML'in .cpp dosyalarını da derlememiz gerekiyor.
+# ImGui ve ImGui-SFML'in .cpp dosyalarını tek tek ekliyoruz
 set(SOURCES
         main.cpp
         ${DEPS_DIR}/imgui/imgui.cpp
@@ -38,25 +34,32 @@ set(SOURCES
         ${DEPS_DIR}/imgui-sfml/imgui-SFML.cpp
 )
 
+# ImGui-SFML'e ImGui'nin nerede olduğunu söylüyoruz
+add_definitions(-DIMGUI_USER_CONFIG="imconfig-SFML.h")
 # --- EXECUTABLE OLUŞTURMA ---
 add_executable(TestEnvironment ${SOURCES})
 
 # --- LINKING (BAĞLAMA) ---
-# SFML kütüphanelerini projemize bağlıyoruz.
-# Sıralama önemlidir! (Graphics -> Window -> System -> Audio)
 target_link_libraries(TestEnvironment
         sfml-graphics
         sfml-window
         sfml-audio
         sfml-system
-        opengl32  # ImGui için Windows'ta gereklidir
+        opengl32
 )
 
-# --- OTOMATİK DLL KOPYALAMA ---
-# CLion'da "Run" dediğinde DLL hatası almamak için harika bir komut.
-# SFML/bin içindeki tüm .dll dosyalarını, programın çalıştığı yere kopyalar.
-file(GLOB SFML_DLLS "${DEPS_DIR}/SFML/bin/*.dll")
-file(COPY ${SFML_DLLS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# --- DOSYA KOPYALAMA İŞLEMLERİ (DLL ve DATASET) ---
 
-# Ayrıca senin 'dataset' klasörünü de kopyalayalım ki program dosyaları bulabilsin
-file(COPY "${CMAKE_SOURCE_DIR}/dataset" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# 1. SFML DLL'lerini kopyala
+if(EXISTS "${DEPS_DIR}/SFML/bin")
+    file(GLOB SFML_DLLS "${DEPS_DIR}/SFML/bin/*.dll")
+    file(COPY ${SFML_DLLS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endif()
+
+# 2. Dataset klasörünü kopyala
+# Eğer klasör varsa kopyalar, yoksa hata vermez ama boş klasör oluşturur.
+if(EXISTS "${CMAKE_SOURCE_DIR}/dataset")
+    file(COPY "${CMAKE_SOURCE_DIR}/dataset" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+else()
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/dataset")
+endif()

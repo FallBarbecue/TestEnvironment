@@ -7,22 +7,16 @@ Library which allows you to use [Dear ImGui](https://github.com/ocornut/imgui) w
 
 Based on [this repository](https://github.com/Mischa-Alff/imgui-backends) with big improvements and changes.
 
-State of Development
------
-
-Development is focused on version 3 in the `master` branch.
-No more features are planned for the 2.x release series.
-
 Dependencies
 -----
 
-* [SFML](https://github.com/SFML/SFML) >= 3.0.0
-* [Dear ImGui](https://github.com/ocornut/imgui) >= 1.91.1, < 1.92.0
+* [SFML](https://github.com/SFML/SFML) >= 2.5.0
+* [Dear ImGui](https://github.com/ocornut/imgui) >= 1.80
 
 Contributing
 -----
 
-* The code is written in C++17 (SFML 3 uses C++17, Dear ImGui has started using C++11 since 2022)
+* The code is written in C++11 (stable SFML is still C++03, Dear ImGui has started using C++11 since 2022)
 * The code should be formatted via [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html) using `.clang-format` provided in the root of this repository
 
 How-to
@@ -73,8 +67,9 @@ Using ImGui-SFML in your code
     - Poll and process events:
 
         ```cpp
-        while (const auto event = window.pollEvent()) {
-            ImGui::SFML::ProcessEvent(window, *event);
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            ImGui::SFML::ProcessEvent(window, event);
             ...
         }
         ```
@@ -104,7 +99,7 @@ See example file [here](https://github.com/SFML/imgui-sfml/blob/master/examples/
 #include <SFML/Window/Event.hpp>
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode({640, 480}), "ImGui + SFML = <3");
+    sf::RenderWindow window(sf::VideoMode(640, 480), "ImGui + SFML = <3");
     window.setFramerateLimit(60);
     ImGui::SFML::Init(window);
 
@@ -113,10 +108,11 @@ int main() {
 
     sf::Clock deltaClock;
     while (window.isOpen()) {
-        while (const auto event = window.pollEvent()) {
-            ImGui::SFML::ProcessEvent(window, *event);
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            ImGui::SFML::ProcessEvent(window, event);
 
-            if (event->is<sf::Event::Closed>()) {
+            if (event.type == sf::Event::Closed) {
                 window.close();
             }
         }
@@ -136,6 +132,8 @@ int main() {
     }
 
     ImGui::SFML::Shutdown();
+
+    return 0;
 }
 ```
 
@@ -257,7 +255,7 @@ Gamepad navigation requires more work, unless you have XInput gamepad, in which 
 
 ```cpp
 ImGuiIO& io = ImGui::GetIO();
-io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 ```
 By default, the first active joystick is used for navigation, but you can set joystick id explicitly like this:
 ```cpp
@@ -267,16 +265,9 @@ ImGui::SFML::SetActiveJoystickId(5);
 High DPI screens
 ----
 
-As SFML is not currently DPI aware, your GUI may show at the incorrect scale. This is particularly noticeable on systems with "Retina" / "4K" / "UHD" displays.
+As SFML is not currently DPI aware, your GUI may show at the incorrect scale. This is particularly noticeable on Apple systems with Retina displays.
 
-To work around this on macOS, you can create an app bundle (as opposed to just the exe) then modify the info.plist so that "High Resolution Capable" is set to "NO".
-
-Another option to help ameliorate this, at least for getting started and for the common ImGui use-case of "developer/debug/building UI", is to explore `FontGlobalScale`:
-
-```cpp
-ImGuiIO& io = ImGui::GetIO();
-io.FontGlobalScale = 2.0; // or any other value hardcoded or loaded from your config logic
-```
+To fix this on macOS, you can create an app bundle (as opposed to just the exe) then modify the info.plist so that "High Resolution Capable" is set to "NO".
 
 License
 ---

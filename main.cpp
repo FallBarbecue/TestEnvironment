@@ -8,7 +8,6 @@
 // --- KÜTÜPHANELER ---
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-#include <SFML/System.hpp>
 
 #include "imgui.h"
 #include "imgui-SFML.h"

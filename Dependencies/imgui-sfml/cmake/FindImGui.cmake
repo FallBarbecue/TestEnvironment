@@ -6,6 +6,7 @@
 # IMGUI_FOUND
 # IMGUI_INCLUDE_DIRS
 # IMGUI_SOURCES
+# IMGUI_DEMO_SOURCES
 # IMGUI_VERSION
 
 list(APPEND IMGUI_SEARCH_PATH
@@ -24,11 +25,14 @@ endif()
 
 set(IMGUI_SOURCES
   ${IMGUI_INCLUDE_DIR}/imgui.cpp
-  ${IMGUI_INCLUDE_DIR}/imgui_demo.cpp
   ${IMGUI_INCLUDE_DIR}/imgui_draw.cpp
   ${IMGUI_INCLUDE_DIR}/imgui_tables.cpp
   ${IMGUI_INCLUDE_DIR}/imgui_widgets.cpp
   ${IMGUI_INCLUDE_DIR}/misc/cpp/imgui_stdlib.cpp
+)
+
+set(IMGUI_DEMO_SOURCES
+  ${IMGUI_INCLUDE_DIR}/imgui_demo.cpp
 )
 
 # Extract version from header
@@ -47,9 +51,9 @@ string(REGEX REPLACE ".*\"(.*)\".*" "\\1" IMGUI_VERSION "${IMGUI_VERSION}")
 
 # Check required version
 if(${IMGUI_VERSION} VERSION_LESS ${ImGui_FIND_VERSION})
-  set(IMGUI_FOUND OFF)
+  set(IMGUI_FOUND FALSE)
   message(FATAL_ERROR "ImGui at with at least v${ImGui_FIND_VERSION} was requested, but only v${IMGUI_VERSION} was found")
 else()
-  set(IMGUI_FOUND ON)
+  set(IMGUI_FOUND TRUE)
   message(STATUS "Found ImGui v${IMGUI_VERSION} in ${IMGUI_INCLUDE_DIR}")
 endif()
